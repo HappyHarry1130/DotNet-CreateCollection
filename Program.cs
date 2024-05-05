@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 
@@ -13,35 +14,27 @@ namespace MongoDBExample
             // Establish connection to MongoDB server
             MongoClient client = new MongoClient(connectionString);
             IMongoDatabase database = client.GetDatabase("mydatabase");
+            IMongoCollection<BsonDocument> collection = database.GetCollection<BsonDocument>("add");
 
-            // Create a collection
-            string collectionName = "add";
-            CreateCollection(database, collectionName);
+            // Create a document to be inserted
+            var document = new BsonDocument
+            {
+                { "name", "John Doe" },
+                { "age", 30 },
+                { "city", "New York" }
+            };
 
-            // Access the collection
-            //IMongoCollection<BsonDocument> collection = database.GetCollection<BsonDocument>(collectionName);
+            // Insert the document into the collection
+            InsertDocument(collection, document);
 
             // Close connection to MongoDB server
             client = null; // Dispose MongoClient instance
         }
 
-        static void CreateCollection(IMongoDatabase database, string collectionName)
+        static void InsertDocument(IMongoCollection<BsonDocument> collection, BsonDocument document)
         {
-            // Check if the collection already exists
-            var collectionsCursor = database.ListCollections();
-            var collections = collectionsCursor.ToList();
-            foreach (var collection in collections)
-            {
-                if (collection["name"].AsString == collectionName)
-                {
-                    Console.WriteLine("Collection already exists.");
-                    return;
-                }
-            }
-
-            // Create the collection
-            database.CreateCollection(collectionName);
-            Console.WriteLine("Collection created successfully.");
+            collection.InsertOne(document);
+            Console.WriteLine("Document inserted successfully.");
         }
     }
 }
